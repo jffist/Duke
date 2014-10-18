@@ -1,0 +1,29 @@
+<duke>
+  <schema>
+    <matcher>epi_link</matcher>
+    <threshold>0.89</threshold>
+
+    <property type="id">
+      <name>ID</name>
+    </property>
+
+    <property>
+      <name>FIRSTNAME</name>
+      <comparator>no.priv.garshol.duke.comparators.JaroWinklerTokenized</comparator>
+      <weight>10</weight>
+    </property>    
+
+    <property lookup="required">
+      <name>LASTNAME</name>
+      <comparator>no.priv.garshol.duke.comparators.JaroWinklerTokenized</comparator>
+      <weight>20</weight>
+    </property>    
+
+    <property lookup="true">
+      <name>ADDRESS</name> 
+      <comparator>no.priv.garshol.duke.comparators.JaroWinklerTokenized</comparator>
+      <weight>8</weight>
+    </property>
+  </schema>
+  
+</duke>

@@ -52,6 +52,12 @@ public interface Property {
   public void setLowProbability(double low);
 
   /**
+   *  set weight of this property for EpiLink matcher
+   *  (weight could be treated as importance of a feature, or estimated automatically)
+   */
+  public void setWeight(double weight);
+
+  /**
    * Iff true the property should not be used for comparing records.
    */
   public boolean isIgnoreProperty();

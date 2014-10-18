@@ -25,8 +25,8 @@ public class Processor {
   private Configuration config;
   private Collection<MatchListener> listeners;
   private Logger logger;
-  private List<Property> proporder; //todo:this field isn't used and maybe should be removed
-  private double[] accprob;         //todo:this field isn't used and maybe should be removed
+  private List<Property> proporder; //FIXME:this field isn't used and maybe should be removed
+  private double[] accprob;         //FIXME:this field isn't used and maybe should be removed
   private RecordsMatcher recordsMatcher;
   private int threads;
   private Database database1;
@@ -71,7 +71,17 @@ public class Processor {
     this.logger = new DummyLogger();
     this.threads = 1;
 
-    this.recordsMatcher = new BayesianRecordMatcher(config);
+    Configuration.RecordsMatcherType matcherType = config.getRecordsMatcherType();
+    switch (matcherType){
+      case BAYESIAN:
+        this.recordsMatcher = new BayesianRecordMatcher(config);
+        break;
+      case EPI_LINK:
+        this.recordsMatcher = new EpiLinkRecordMatcher(config);
+        break;
+      default:
+        throw new IllegalArgumentException("unknown record matcher specified: " + matcherType);
+    }
 
     // todo: remove as it's not used anywhere or move in constructor of BayesianRecordMatcher
     // precomputing for later optimizations
@@ -81,7 +91,7 @@ public class Processor {
         proporder.add(p);
     Collections.sort(proporder, new PropertyComparator());
 
-    // todo: remove as it's not used anywhere
+    // FIXME: remove as it's not used anywhere
     // still precomputing
     double prob = 0.5;
     accprob = new double[proporder.size()];

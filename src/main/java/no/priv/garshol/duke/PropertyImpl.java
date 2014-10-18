@@ -23,8 +23,7 @@ public class PropertyImpl implements Property {
     this.lookup = Lookup.FALSE;
   }
 
-  //copy constructor
-  protected PropertyImpl(String name, Comparator comparator, double low,
+ public PropertyImpl(String name, Comparator comparator, double low,
                       double high, double weight) {
     this.name = name;
     this.id = false;
@@ -117,6 +116,14 @@ public class PropertyImpl implements Property {
    */
   public void setLowProbability(double low) {
     this.low = low;
+  }
+
+  /**
+   *  set weight of this property for EpiLink matcher
+   *  (weight could be treated as importance of a feature, or estimated automatically)
+   */
+  public void setWeight(double weight) {
+    this.weight = weight;
   }
 
   /**

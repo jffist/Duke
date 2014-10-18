@@ -117,4 +117,23 @@ public interface Configuration {
    * @since 1.3
    */
   public List<Comparator> getCustomComparators();
+
+
+  /**
+   * Returns type of algorithm used to estimate probability of records match
+   * @since 1.x (todo:)
+   */
+  public RecordsMatcherType getRecordsMatcherType();
+
+  public enum RecordsMatcherType {
+    /**
+     * Duke original approach (default)
+     */
+    BAYESIAN,
+
+    /**
+     * weighted similarity
+     */
+    EPI_LINK
+  }
 }

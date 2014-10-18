@@ -15,7 +15,6 @@ import no.priv.garshol.duke.ConfigLoader;
 import no.priv.garshol.duke.Configuration;
 import no.priv.garshol.duke.DukeConfigException;
 import no.priv.garshol.duke.databases.LuceneDatabase;
-import no.priv.garshol.duke.comparators.NumericComparator;
 import no.priv.garshol.duke.comparators.WeightedLevenshtein;
 import no.priv.garshol.duke.comparators.WeightedLevenshtein.DefaultWeightEstimator;
 
@@ -52,6 +51,7 @@ public class ConfigLoaderTest {
     assertEquals(config.getThreshold(), 0.4);
     assertEquals(config.getMaybeThreshold(), 0.0);
     assertTrue(config.getProperties().isEmpty());
+    assertEquals(Configuration.RecordsMatcherType.BAYESIAN, config.getRecordsMatcherType());
   }
 
   @Test
@@ -70,6 +70,7 @@ public class ConfigLoaderTest {
     Property prop = config.getPropertyByName("FIRSTNAME");
     assertEquals(0.5, prop.getHighProbability());
     assertEquals(0.5, prop.getLowProbability());
+    assertEquals(Double.NEGATIVE_INFINITY, prop.getWeight());
     assertEquals(Property.Lookup.DEFAULT, prop.getLookupBehaviour());
   }
 
@@ -129,5 +130,36 @@ public class ConfigLoaderTest {
     WeightedLevenshtein wl = (WeightedLevenshtein) comparators.get(0);
     DefaultWeightEstimator est = (DefaultWeightEstimator) wl.getEstimator();
     assertEquals(3.8, est.getDigitWeight());
+  }
+
+  @Test
+  public void testMatcherTypeIsConfigured() throws IOException, SAXException {
+    Configuration config = ConfigLoader.load("classpath:config-matcher-bayesian.xml");
+    assertEquals(Configuration.RecordsMatcherType.BAYESIAN, config.getRecordsMatcherType());
+
+    config = ConfigLoader.load("classpath:config-matcher-epilink.xml");
+    assertEquals(Configuration.RecordsMatcherType.EPI_LINK, config.getRecordsMatcherType());
+  }
+
+
+  @Test
+  public void testEpilinkWeights() throws Exception {
+    Configuration config = ConfigLoader.load("classpath:config-epilink-weights.xml");
+    assertEquals(Configuration.RecordsMatcherType.EPI_LINK, config.getRecordsMatcherType());
+
+    Property fname = config.getPropertyByName("FIRSTNAME");
+    assertEquals(10D, fname.getWeight());
+    assertEquals(Property.Lookup.DEFAULT, fname.getLookupBehaviour());
+
+    Property lname = config.getPropertyByName("LASTNAME");
+    assertEquals(20D, lname.getWeight());
+    assertEquals(Property.Lookup.REQUIRED, lname.getLookupBehaviour());
+
+    Property addr = config.getPropertyByName("ADDRESS");
+    assertEquals(8D, addr.getWeight());
+    assertEquals(Property.Lookup.TRUE, addr.getLookupBehaviour());
+
+    assertEquals(4, config.getProperties().size());
+    assertEquals(2, config.getLookupProperties().size());
   }
 }

@@ -83,6 +83,7 @@ public class ConfigLoader {
 
     private double low;
     private double high;
+    private double weight;
     private String name;
     private boolean idprop;
     private boolean ignore_prop;
@@ -114,6 +115,8 @@ public class ConfigLoader {
       keepers.add("name");
       keepers.add("low");
       keepers.add("high");
+      keepers.add("matcher");
+      keepers.add("weight");
       keepers.add("comparator");
     }
 
@@ -128,6 +131,7 @@ public class ConfigLoader {
         ignore_prop = type != null && type.equals("ignore");
         low = 0.5;
         high = 0.5;
+        weight = Double.NEGATIVE_INFINITY;
         comparator = null;
         lookup = Property.Lookup.DEFAULT;
         if (attributes.getValue("lookup") != null)
@@ -220,13 +224,19 @@ public class ConfigLoader {
         config.setThreshold(Double.parseDouble(content.toString()));
       else if (localName.equals("maybe-threshold"))
         config.setMaybeThreshold(Double.parseDouble(content.toString()));
+      else if (localName.equals("matcher")){
+        Configuration.RecordsMatcherType type = (Configuration.RecordsMatcherType)
+                      ObjectUtils.getEnumConstantByName(Configuration.RecordsMatcherType.class,
+                                                        content.toString());
+         config.setMatcherType(type);
+      }
       else if (localName.equals("name"))
         name = content.toString();
       else if (localName.equals("property")) {
         if (idprop)
           properties.add(new PropertyImpl(name));
         else {
-          Property p = new PropertyImpl(name, comparator, low, high);
+          Property p = new PropertyImpl(name, comparator, low, high, weight);
           if (ignore_prop)
             p.setIgnoreProperty(true);
           p.setLookupBehaviour(lookup);
@@ -236,6 +246,8 @@ public class ConfigLoader {
         low = Double.parseDouble(content.toString());
       else if (localName.equals("high"))
         high = Double.parseDouble(content.toString());
+      else if (localName.equals("weight"))
+        weight = Double.parseDouble(content.toString());
       else if (localName.equals("comparator")) {
         comparator = (Comparator) objects.get(content.toString());
         if (comparator == null) // wasn't a configured bean

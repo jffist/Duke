@@ -9,7 +9,6 @@ import java.util.Collection;
 import java.util.Collections;
 
 import no.priv.garshol.duke.utils.Utils;
-import no.priv.garshol.duke.utils.ObjectUtils;
 
 /**
  * Holds the configuration details for a dataset.
@@ -36,11 +35,14 @@ public class ConfigurationImpl implements Configuration {
 
   private List<Comparator> customComparators;
 
+  private RecordsMatcherType matcherType;
+
   public ConfigurationImpl() {
     this.datasources = new ArrayList();
     this.group1 = new ArrayList();
     this.group2 = new ArrayList();
     this.customComparators = new ArrayList<Comparator>();
+    this.matcherType = RecordsMatcherType.BAYESIAN;
   }
 
   /**
@@ -214,22 +216,24 @@ public class ConfigurationImpl implements Configuration {
     if (properties == null || properties.isEmpty())
       throw new DukeConfigException("Configuration has no properties at all");
 
-    // check if max prob is below threshold
-    // this code duplicates code in findLookupProperties(), but prefer
-    // that to creating an attribute
-    double prob = 0.5;
-    for (Property prop : properties.values()) {
-      if (prop.getHighProbability() == 0.0)
-        // if the probability is zero we ignore the property entirely
-        continue;
+    if (RecordsMatcherType.BAYESIAN.equals(matcherType)) {
+      // check if max prob is below threshold
+      // this code duplicates code in findLookupProperties(), but prefer
+      // that to creating an attribute
+      double prob = 0.5;
+      for (Property prop : properties.values()) {
+        if (prop.getHighProbability() == 0.0)
+          // if the probability is zero we ignore the property entirely
+          continue;
 
-      prob = Utils.computeBayes(prob, prop.getHighProbability());
+        prob = Utils.computeBayes(prob, prop.getHighProbability());
+      }
+      if (prob < threshold)
+        throw new DukeConfigException("Maximum possible probability is " + prob +
+            ", which is below threshold (" + threshold +
+            "), which means no duplicates will ever " +
+            "be found");
     }
-    if (prob < threshold)
-      throw new DukeConfigException("Maximum possible probability is " + prob +
-                                 ", which is below threshold (" + threshold +
-                                 "), which means no duplicates will ever " +
-                                 "be found");
 
     // check that we have at least one ID property
     if (getIdentityProperties().isEmpty())
@@ -313,6 +317,8 @@ public class ConfigurationImpl implements Configuration {
       newprops.add(p.copy());
     copy.setProperties(newprops);
 
+    copy.setMatcherType(matcherType);
+
     return copy;
   }
 
@@ -325,5 +331,15 @@ public class ConfigurationImpl implements Configuration {
   @Override
   public void addCustomComparator(Comparator comparator) {
 	this.customComparators.add(comparator);
+  }
+
+
+  @Override
+  public RecordsMatcherType getRecordsMatcherType() {
+    return matcherType;
+  }
+
+  public void setMatcherType(RecordsMatcherType matcherType) {
+    this.matcherType = matcherType;
   }
 }

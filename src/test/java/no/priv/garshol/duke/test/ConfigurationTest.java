@@ -6,17 +6,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.io.IOException;
 
+import no.priv.garshol.duke.*;
 import org.junit.Test;
-import org.junit.Before;
-import org.junit.Ignore;
+
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
-import no.priv.garshol.duke.Property;
-import no.priv.garshol.duke.PropertyImpl;
-import no.priv.garshol.duke.ConfigurationImpl;
-import no.priv.garshol.duke.DukeConfigException;
 import no.priv.garshol.duke.comparators.ExactComparator;
 
 public class ConfigurationTest {
@@ -257,6 +253,32 @@ public class ConfigurationTest {
     assertEquals(3, lookups.size());
     assertTrue(lookups.contains(name));
     assertTrue(lookups.contains(email));
+    assertTrue(lookups.contains(phone));
+  }
+
+  @Test
+  public void testLookupPropertiesForEpiLinkMatcherAreSelectedUsingRequiredAttribute() throws Exception {
+    ExactComparator comp = new ExactComparator();
+    List<Property> props = new ArrayList();
+    props.add(new PropertyImpl("ID"));
+    Property name = new PropertyImpl("NAME", comp, 10);
+    props.add(name);
+    name.setLookupBehaviour(Property.Lookup.REQUIRED);
+    Property email = new PropertyImpl("EMAIL", comp, 20);
+    props.add(email);
+    Property phone = new PropertyImpl("PHONE", comp, 30);
+    props.add(phone);
+    phone.setLookupBehaviour(Property.Lookup.TRUE);
+
+    ConfigurationImpl config = new ConfigurationImpl();
+    config.setMatcherType(Configuration.RecordsMatcherType.EPI_LINK);
+    config.setThreshold(0.85);
+    config.setProperties(props);
+    config.validate();
+
+    Collection<Property> lookups = config.getLookupProperties();
+    assertEquals(2, lookups.size());
+    assertTrue(lookups.contains(name));
     assertTrue(lookups.contains(phone));
   }
 }
