@@ -226,6 +226,7 @@ TO PUBLISH SNAPSHOTS
       <build>
       <plugins>
         <!-- this plugin is used to sign releases -->
+<!--require passphrase, so turned off
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-gpg-plugin</artifactId>
@@ -240,7 +241,7 @@ TO PUBLISH SNAPSHOTS
             </execution>
           </executions>
         </plugin>
-
+-->
         <!-- generating sources.jar (for sonatype) -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
