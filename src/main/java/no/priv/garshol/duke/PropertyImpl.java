@@ -13,6 +13,7 @@ public class PropertyImpl implements Property {
   private double high;           // irrelevant if ID
   private double low;            // irrelevant if ID
   private Lookup lookup;         // irrelevant if ID
+  private double weight;         // irrelevant if ID
 
   // used to initialize ID properties
   public PropertyImpl(String name) {
@@ -20,6 +21,19 @@ public class PropertyImpl implements Property {
     this.id = true;
     this.analyzed = false;
     this.lookup = Lookup.FALSE;
+  }
+
+  //copy constructor
+  protected PropertyImpl(String name, Comparator comparator, double low,
+                      double high, double weight) {
+    this.name = name;
+    this.id = false;
+    this.analyzed = comparator != null && comparator.isTokenized();
+    this.comparator = comparator;
+    this.high = high;
+    this.low = low;
+    this.lookup = Lookup.DEFAULT;
+    this.weight = weight;
   }
 
   public PropertyImpl(String name, Comparator comparator, double low,
@@ -31,6 +45,18 @@ public class PropertyImpl implements Property {
     this.high = high;
     this.low = low;
     this.lookup = Lookup.DEFAULT;
+    this.weight = Double.NEGATIVE_INFINITY;
+  }
+
+  public PropertyImpl(String name, Comparator comparator, double weight) {
+    this.name = name;
+    this.id = false;
+    this.analyzed = comparator != null && comparator.isTokenized();
+    this.comparator = comparator;
+    this.high = -1D;
+    this.low = -1D;
+    this.lookup = Lookup.DEFAULT;
+    this.weight = weight;
   }
 
   // FIXME: rules for property names?
@@ -60,6 +86,10 @@ public class PropertyImpl implements Property {
 
   public Lookup getLookupBehaviour() {
     return lookup;
+  }
+
+  public double getWeight() {
+    return weight;
   }
 
   /**
@@ -154,11 +184,16 @@ public class PropertyImpl implements Property {
       return low;
   }
 
+  @Override
+  public double calculateSimilarity(String v1, String v2) {
+    return (comparator == null) ? 0 : comparator.compare(v1, v2);
+  }
+
   public Property copy() {
     if (id)
       return new PropertyImpl(name);
 
-    PropertyImpl p = new PropertyImpl(name, comparator, low, high);
+    PropertyImpl p = new PropertyImpl(name, comparator, low, high, weight);
     p.setIgnoreProperty(ignore);
     p.setLookupBehaviour(lookup);
     return p;

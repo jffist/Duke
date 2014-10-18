@@ -26,6 +26,8 @@ public interface Property {
 
   public double getLowProbability();
 
+  public double getWeight();
+
   public Lookup getLookupBehaviour();
   
   /**
@@ -69,6 +71,11 @@ public interface Property {
    * same entity, based on high and low probability settings etc.
    */
   public double compare(String v1, String v2);
+
+  /**
+   * Returns similarity of records v1 and v2
+   */
+  public double calculateSimilarity(String v1, String v2);
 
   /**
    * Returns a copy of the property.
