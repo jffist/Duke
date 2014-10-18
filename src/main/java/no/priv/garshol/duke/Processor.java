@@ -25,8 +25,9 @@ public class Processor {
   private Configuration config;
   private Collection<MatchListener> listeners;
   private Logger logger;
-  private List<Property> proporder;
-  private double[] accprob;
+  private List<Property> proporder; //todo:this field isn't used and maybe should be removed
+  private double[] accprob;         //todo:this field isn't used and maybe should be removed
+  private RecordsMatcher recordsMatcher;
   private int threads;
   private Database database1;
   private Database database2;
@@ -70,6 +71,9 @@ public class Processor {
     this.logger = new DummyLogger();
     this.threads = 1;
 
+    this.recordsMatcher = new BayesianRecordMatcher(config);
+
+    // todo: remove as it's not used anywhere or move in constructor of BayesianRecordMatcher
     // precomputing for later optimizations
     this.proporder = new ArrayList();
     for (Property p : config.getProperties())
@@ -77,6 +81,7 @@ public class Processor {
         proporder.add(p);
     Collections.sort(proporder, new PropertyComparator());
 
+    // todo: remove as it's not used anywhere
     // still precomputing
     double prob = 0.5;
     accprob = new double[proporder.size()];
@@ -577,42 +582,7 @@ public class Processor {
    */
   public double compare(Record r1, Record r2) {
     comparisons++;
-    double prob = 0.5;
-    for (String propname : r1.getProperties()) {
-      Property prop = config.getPropertyByName(propname);
-      if (prop == null)
-        continue; // means the property is unknown
-      if (prop.isIdProperty() || prop.isIgnoreProperty())
-        continue;
-
-      Collection<String> vs1 = r1.getValues(propname);
-      Collection<String> vs2 = r2.getValues(propname);
-      if (vs1 == null || vs1.isEmpty() || vs2 == null || vs2.isEmpty())
-        continue; // no values to compare, so skip
-
-      double high = 0.0;
-      for (String v1 : vs1) {
-        if (v1.equals("")) // FIXME: these values shouldn't be here at all
-          continue;
-
-        for (String v2 : vs2) {
-          if (v2.equals("")) // FIXME: these values shouldn't be here at all
-            continue;
-
-          try {
-            double p = prop.compare(v1, v2);
-            high = Math.max(high, p);
-          } catch (Exception e) {
-            throw new DukeException("Comparison of values '" + v1 + "' and "+
-                                    "'" + v2 + "' with " +
-                                    prop.getComparator() + " failed", e);
-          }
-        }
-      }
-
-      prob = Utils.computeBayes(prob, high);
-    }
-    return prob;
+    return recordsMatcher.estimateMatchProbability(r1, r2);
   }
 
   /**
